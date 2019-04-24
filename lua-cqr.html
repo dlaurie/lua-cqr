@@ -1,0 +1,208 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+</head>
+<body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> <meta http-equiv="Content-Style-Type" content="text/css" /> <meta name="generator" content="pandoc" /> <meta name="author" content="Dirk Laurie " />
+<title>
+Robert Naylor LAURIE (1823-1859)
+</title>
+<style type="text/css">
+body {
+    background-color: #FFFFFF ;
+    color: #000000 ;
+    font-family: "Freefont Serif", serif;
+    text-align: flush-left ;
+    line-height: 1.25 ;
+    margin: 16px auto ;
+    padding: 32px ;
+    max-width: 40em ;
+}
+code {
+/*  display: block; */
+  background-color: #FFF7D0;
+  max-width: 80%;
+  color: #004000;
+  font-family: FreeMono;
+  font-size: 14pt; 
+}
+  </style>
+</head>
+<body>
+<div id="header">
+<h1 class="title">
+Computational Quaternion Rotations in Lua
+</h1>
+<h2 class="author">
+Dirk Laurie
+</h2>
+<h3 class="date">
+May 2019
+</h3>
+</div>
+<p>This module provides an extended idiomatic Lua interface to the <a href="https://sourceforge.net/projects/cqrlib"><code>CQRlib</code> library</a> written by Herbert J. Bernstein. It is not a &quot;binding&quot; and access to the original documentation is only required for those who wish to understand the module's C code <code>cqr.c</code>.</p>
+<p>A quaternion is implemented as an immutable userdata consisting of four double precision numbers. The metatable of that module, which is its own <code>__index</code>, is returned by <code>require &quot;cqr&quot;</code>.</p>
+<p>Three special cases of a quaternion are:</p>
+<dl>
+<dt><em>vector</em></dt>
+<dd>has scalar part 0
+</dd>
+<dt><em>rotator</em></dt>
+<dd>has norm 1
+</dd>
+<dt><em>axis</em></dt>
+<dd>has scalar part 0 and norm 1
+</dd>
+</dl>
+<h3 id="methods">Methods</h3>
+<p>The module contains the following methods. All expect a quaternion as first argument and are normally called using object-oriented notation, as shown.</p>
+<dl>
+<dt><code>q:unpack()</code></dt>
+<dd>Returns the four elements <code>w,x,y,z</code> of <code>q</code>.
+</dd>
+<dt><code>q:scalar()</code></dt>
+<dd>Returns one real number, the scalar part of <code>q</code>. Same effect as <code>(q:unpack())</code>.
+</dd>
+<dt><code>q:normsq()</code></dt>
+<dd>Returns the squared norm of <code>q</code>.
+</dd>
+<dt><code>q:sqrt()</code></dt>
+<dd>Returns the principal square root of <code>q</code>. If there are infinitely many square roots (i.e. <code>q</code> is a negative scalar), returns nothing. (Not in <code>CQRlib</code>.)
+</dd>
+<dt><code>q:exp()</code></dt>
+<dd>Returns the exponential of <code>q</code>.
+</dd>
+<dt><code>q:log()</code></dt>
+<dd>Returns the principal value of the logarithm of <code>q</code>.
+</dd>
+<dt><code>q:arg()</code></dt>
+<dd>Returns the angle in the range 0 to <code>math,pi</code> when <code>q</code> is plotted in the plane, with the scalar part on the <code>x</code> axis and the norm of the vector part on the <code>y</code> axis.
+</dd>
+<dt><code>q:root(n,k)</code></dt>
+<dd>Returns the k-th value of the n-th root of <code>q</code>.
+</dd>
+<dt><code>q:vector()</code></dt>
+<dd>Returns a copy of <code>q</code> with the scalar part set to 0.
+</dd>
+<dt><code>q:axis()</code></dt>
+<dd>Returns a copy of <code>q</code> with the scalar part set to 0 and the vector part normalized to have norm 1, so that the result is an axis.
+</dd>
+<dt><code>q:angles()</code></dt>
+<dd>Converts an axis to three &quot;Euler angles for the Rz(Ry(Rx))) convention&quot;. Returns three numbers. The result is undefined if <code>q</code> is not an axis.
+</dd>
+<dt><code>q:matrix()</code></dt>
+<dd>Converts an axis to a 3×3 rotation matrix. Returns as a table with three rows. If <code>q</code> is not an axis, then the result is a rotation matrix scaled by <code>q:normsq()</code>.
+</dd>
+</dl>
+<h3 id="constructors">Constructors</h3>
+<p>All the constructors are subsumed in one function <code>cqr.new</code>. The number and type of the arguments direct the choice of constructor.</p>
+<dl>
+<dt><code>cqr.new()</code></dt>
+<dd>Constructs a quaternion with all fields 0.
+</dd>
+<dt><code>cqr.new(q)</code></dt>
+<dd>Makes a copy of the quaternion <code>q</code>. Not needed in Lua, since one can simply assign the (immutable) value to another name, but old habits die hard.
+</dd>
+<dt><code>cqr.new(w)</code></dt>
+<dd>Constructs a quaternion with scalar part <code>w</code> and vector part zero.
+</dd>
+<dt><code>cqr.new(mat)</code></dt>
+<dd>Constructs a quaternion equivalent to the 3×3 rotation matrix <code>mat</code>, such as the output of <code>q:matrix()</code>. The result is undefined if <code>mat</code> is not a rotation matrix (i.e. an orthogonal matrix with determinant 1.)
+</dd>
+<dt><code>cqr.new(rx,ry,rz)</code></dt>
+<dd>Constructs a quaternion equivalent to the three Euler angles, such as the output of <code>q:angles()</code>.
+</dd>
+<dt><code>cqr.new(w,x,y,z)</code></dt>
+<dd>Constructs a quaternion from four numbers.
+</dd>
+</dl>
+<h3 id="metamethods">Metamethods</h3>
+<p>Metamethods for the binary functions <code>+ - * / ^</code> work analogously to their ordinary numerical counterparts. For the first four of these, either argument may be a number; in particular, the reciprocal of a <code>q</code> can be computed as <code>1/q</code>. For the power function, the second argument may be a number.</p>
+<p>Please keep in mind that multiplication is not commutative. Division is defined by <code>(b/a)*a == b</code>. The expression <code>a*(b/a)</code> yields a rotation of <code>b</code> around the vector <code>a</code>: see the definition of <code>//</code> below.</p>
+<p>Metamethods for conversion to a string, negation (unary <code>-</code>) and equality (<code>==</code>) also work as one expects, but for the equality test, both arguments must be quaternions.</p>
+<p>Six other metamehods not applicable to floating-point numbers have been defined to provide access to functions peculiar to quaternions. This usage has nothing to do with the original meaning of the symbols.</p>
+<p>The metamethods are stored in the module <code>cqr</code> under the names described in the Lua manual: <code>__add</code>, <code>__bnot</code> etc.</p>
+<dl>
+<dt><code>#q</code></dt>
+<dd>norm of a quaternion
+</dd>
+<dt><code>~q</code></dt>
+<dd>conjugate of a quaternion
+</dd>
+<dt><code>q1..q2</code></dt>
+<dd>dot product of two quaternions
+</dd>
+<dt><code>v&gt;&gt;t</code></dt>
+<dd>rotator around a vector <code>v</code> by the angle <code>t</code>
+</dd>
+<dt><code>q//r</code></dt>
+<dd>rotation of the quaternion <code>q</code> by the rotator <code>r</code>, using the formula <code>r*q*~r</code>. If <code>r</code> is not a rotator, the result is scaled as well as rotated.
+</dd>
+<dt><code>v1|v2</code></dt>
+<dd>rotator that takes a vector <code>v1</code> to a scalar multiple of another: <code>v1//(v1|v2) == (#v1/#v2)*v2</code>. (Not in <code>CQRlib</code>.)
+</dd>
+</dl>
+<h3 id="other-functions">Other functions</h3>
+<p>The following four routines from <code>CQRlib</code> have been included for the sake of completeness, but they are much less basic than the others and <em>not vouched for the author of the Lua package</em>.</p>
+<p>Their action is described by the author of <code>CQRlib</code> as follows:</p>
+<blockquote>
+<p>The SLERP and HLERP functions combine quaternions by spherical linear interpolation. SLERP takes two quaternions and two weights and combines them following a great circle on the unit quaternion 4-D sphere and linear interpolation between the radii. SLERP keeps a quaternion separate from the negative of the same quaternion and is not appropriate for quaternions representing rotations. Use HLERP to apply SLERP to quaternions representing rotations.</p>
+</blockquote>
+<p>They expect two quaternions as their first two arguments and should be called in non-object style. All the arguments are therefore shown. In the first two routines, <code>w1,w2</code> are weights; the return value is at <code>t=w2/(w1+w2)</code> in a parameter space where the given points are at <code>t=0</code> and at <code>t=1</code>.</p>
+<dl>
+<dt><code>cqr.slerp(q1,q2,w1,w2)</code></dt>
+<dd>spherical interpolation
+</dd>
+<dt><code>cqr.hlerp(q1,q2,w1,w2)</code></dt>
+<dd>hemispherical interpolation
+</dd>
+<dt><code>cqr.slerpdist(q1,q2)</code></dt>
+<dd>spherical distance
+</dd>
+<dt><code>cqr.hlerpdist(q1,q2)</code></dt>
+<dd>hemispherical distance
+</dd>
+</dl>
+<h3 id="other-fields">Other fields</h3>
+<dl>
+<dt><code>__name</code></dt>
+<dd>The string <code>&quot;quaternion&quot;</code>
+</dd>
+<dt><code>__index</code></dt>
+<dd>The module itself, so that methods and metamethods can coexist in the same table.
+</dd>
+<dt><code>_VERSION</code></dt>
+<dd>A string similar to <code>&quot;quaternion library for Lua 5.3: Apr 2019&quot;</code>.
+</dd>
+</dl>
+<h3 id="quaternions-and-complex-numbers">Quaternions and complex numbers</h3>
+<p>A quaternion in which two of the three vector components are 0 is obviously equivalent to a complex number. This observation allows one to compute any analytical function of a quaternion (i.e. one definable by a power series or comtinued fraction) if the corresponding function <code>f</code> of a complex veriable is available, by the following procedure:</p>
+<pre><code>-- let q = w + v*u, where w and v are scalar and u is an axis
+-- evaluate f(w+v*i) = x+y*i 
+-- f(q) = x + y*u</code></pre>
+<p>The reason why this is correct is that there exists a rotator <code>r</code> such that <code>s = q//r</code> is equivalent to a complex number, so that <code>f(s)</code> can be evaluated via the given routine. Now for any power of s,</p>
+<pre><code>s^k = (r*q/r)^k = r*q^k/r = q^k//r</code></pre>
+<p>and applying this term-by term to an expansion of <code>f</code>, we arrive at <code>f(q//r) = f(q)//r</code> and thus <code>f(q) = f(q//r)//~r.</code> The above three steps is merely a more straightforward way of doing the same calculation.</p>
+<p>The test suite for <code>cqr</code> actually tests <code>cqr.exp</code>, <code>cqr.log</code> and <code>cqr.sqrt</code> this way, if a suitable <code>complex</code> (i.e. one that has methods <code>new</code>, <code>real</code>, <code>imag</code>, <code>exp</code> and <code>log</code>) can be found by <code>require</code>. See the code near the top of <code>test.lua</code> for a function <code>H.eval</code> that implements the algorithm.</p>
+<h3 id="features-in-cqrlib-that-have-not-been-provided-in-the-lua-module">Features in <code>CQRlib</code> that have not been provided in the Lua module</h3>
+<dl>
+<dt>Mutability and componentwise access to vector parts</dt>
+<dd>Not providing these is a deliberate policy decision, in order to give quaternions a more number-like and less structure-like feel. Use the idiom <code>local w,x,y,z = q:unpack()</code> and create a new quaternion instead.
+</dd>
+<dt>Dynamic allocation of quaternions</dt>
+<dd>This would be justified only if a quaternion could be implemented as a light userdata, which would hardly be appropriate in view of its extensive metatable.
+</dd>
+<dt>An inverse function</dt>
+<dd>Can be done by means of the expression <code>1/q</code>.
+</dd>
+</dl>
+</body>
+</html>
