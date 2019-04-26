@@ -96,10 +96,10 @@ May 2019
 <dd>Returns a copy of <code>q</code> with the scalar part set to 0 and the vector part normalized to have norm 1, so that the result is an axis.
 </dd>
 <dt><code>q:angles()</code></dt>
-<dd>Converts an axis to three &quot;Euler angles for the Rz(Ry(Rx))) convention&quot;. Returns three numbers. The result is undefined if <code>q</code> is not an axis.
+<dd>Converts a rotator to three &quot;Euler angles for the Rz(Ry(Rx))) convention&quot;. Returns three numbers. The result is undefined if <code>q</code> is not a rotator.
 </dd>
 <dt><code>q:matrix()</code></dt>
-<dd>Converts an axis to a 3×3 rotation matrix. Returns as a table with three rows. If <code>q</code> is not an axis, then the result is a rotation matrix scaled by <code>q:normsq()</code>.
+<dd>Converts a rotator to a 3×3 rotation matrix. Returns as a table with three rows. If <code>q</code> is not a rotator, then the result is a rotation matrix scaled by <code>q:normsq()</code>.
 </dd>
 </dl>
 <h3 id="constructors">Constructors</h3>
