@@ -1,50 +1,49 @@
-# makefile for quaternion library for Lua
-# adapted from LHF's complex library
+# Based on LHF's Makefile in lcomplex-100.tar.gz obtainebale from:
+# http://webserver2.tecgraf.puc-rio.br/~lhf/ftp/lua/index.html#lcomplex 
 
-# change these to reflect your Lua installation
-#LUA= 
-#LUAINC= 
-#LUALIB= 
-#LUABIN= 
+LUA_TOPDIR= /usr/local
+LUA_INCDIR= $(LUA_TOPDIR)/include
+LUA_BINDIR= $(LUA_TOPDIR)/bin
+    LIBDIR= $(LUA_TOPDIR)/lib/lua/5.3
+       LUA= $(LUA_BINDIR)/lua
 
-# these will probably work if Lua has been installed globally
-LUA= /usr/local
-LUAINC= $(LUA)/include
-LUALIB= $(LUA)/lib
-LUABIN= $(LUA)/bin
-
-# probably no need to change anything below here
-CC= gcc
-CFLAGS= -std=c99 -fPIC $(INCS) $(WARN) -O2 $G 
-WARN= -pedantic -Wall -Wextra
-INCS= -I$(LUAINC)
-MAKESO= $(CC) -shared
-#MAKESO= $(CC) -bundle -undefined dynamic_lookup
+CC= gcc -std=c99
+CFLAGS= -Wall -Wextra -Wfatal-errors -O2
+MYCFLAGS= $(CFLAGS) -I$(LUA_INCDIR)
 
 MYNAME= cqr
-BINDSTO= -lCQRlib
-MYLIB= l$(MYNAME)
-T= $(MYNAME).so 
-OBJS= $(MYLIB).o
-TEST= test.lua
+MYLIBS= -lCQRlib
+MYFILE= l$(MYNAME).c
+MYMOD= $(MYNAME).$(LIBEXT)
 
-all:	test
+all:	so test
 
-test:	$T
-	$(LUABIN)/lua $(TEST)
+so:
+	@$(MAKE) `uname`
 
-o:	$(MYLIB).o
+test:
+	$(LUA) test.lua
 
-so:	$T
-
-$T:	$(OBJS)
-	$(MAKESO) -o $@ $(OBJS) $(BINDSTO)
+install:
+	cp $(MYMOD) $(LIBDIR)
 
 clean:
-	rm -f $(OBJS) $T core core.*
+	rm -f *.o *.so
 
 doc:
 	@echo "$(MYNAME) library:"
-	@fgrep '/**' $(MYLIB).c | cut -f2 -d/ | tr -d '*' | sort | column
+	@fgrep '/**' $(MYFILE) | cut -f2 -d/ | tr -d '* ' | sort | column
 
-# eof
+Linux:
+	$(CC) $(MYCFLAGS) -o $(MYMOD) -shared -fPIC $(MYFILE) $(MYLIBS)
+
+Darwin:
+	$(CC) $(MYCFLAGS) -o $(MYMOD) -bundle -undefined dynamic_lookup $(MYFILE) $(MYLIBS)
+
+build:
+	$(CC) $(MYCFLAGS) -o $(MYMOD) $(LIBFLAG) $(MYFILE) $(MYLIBS)
+
+LIBFLAG= -shared -fPIC
+LIBEXT= so
+
+.PHONY: all so test install clean doc Linux Darwin build

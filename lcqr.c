@@ -319,7 +319,7 @@ static int Lbor(lua_State *L)
   CQRDivide(r,p,q);            // a = p/q
   CQRGetQuaternionAngle(&t,r);
   CQRGetQuaternionIm(r,r);
-  CQRAxis2Quaternion(r,r,t);   // r = a:vector() >> a:arg()
+  CQRAxis2Quaternion(r,&r->x,t);   // r = a:vector() >> a:arg()
   return 1; 
 }
 
